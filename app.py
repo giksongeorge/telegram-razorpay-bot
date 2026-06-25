@@ -32,7 +32,8 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-TARGET_PLAN_ID = "plan_JyX12345abc"  # replace with your plan ID
+# Replace this with the exact Plan ID you copied from Razorpay
+TARGET_PLAN_ID = "plan_T2znqUUcBkZn5U"
 
 @app.route("/razorpay-webhook", methods=["POST"])
 def razorpay_webhook():
@@ -42,10 +43,11 @@ def razorpay_webhook():
     plan_id = subscription.get("plan_id")
 
     if plan_id == TARGET_PLAN_ID:
-        # ✅ Handle monthly subscription
-        print("Valid subscription event:", plan_id)
-        # Here you will add Telegram logic (next step)
+        # ✅ This is the monthly subscription plan we care about
+        print("Valid subscription event for monthly plan:", plan_id)
+        # TODO: Add Telegram bot logic here (e.g., add user to channel)
     else:
+        # ❌ Ignore other plans or payment links
         print("Ignored event for plan:", plan_id)
 
     return jsonify({"status": "ok"})
