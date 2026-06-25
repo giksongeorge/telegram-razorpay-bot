@@ -28,3 +28,24 @@ def razorpay_webhook():
         bot.kick_chat_member(chat_id=GROUP_ID, user_id=telegram_id)
 
     return "ok", 200
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+TARGET_PLAN_ID = "plan_JyX12345abc"  # replace with your plan ID
+
+@app.route("/razorpay-webhook", methods=["POST"])
+def razorpay_webhook():
+    data = request.get_json()
+
+    subscription = data.get("subscription", {})
+    plan_id = subscription.get("plan_id")
+
+    if plan_id == TARGET_PLAN_ID:
+        # ✅ Handle monthly subscription
+        print("Valid subscription event:", plan_id)
+        # Here you will add Telegram logic (next step)
+    else:
+        print("Ignored event for plan:", plan_id)
+
+    return jsonify({"status": "ok"})
