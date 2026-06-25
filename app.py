@@ -8,8 +8,8 @@ app = Flask(__name__)
 TARGET_PLAN_ID = "plan_I2znqUcBkZn5U"
 
 # 🔑 Replace with your actual Telegram bot token and group/channel ID
-TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-GROUP_ID = -1001234567890   # Example: numeric ID for your private group
+TELEGRAM_BOT_TOKEN = "8944690649:AAEd_hrD8uS3hvmwCKK_tPVrQ767j7r7xiU"
+GROUP_ID = -2247522257   # Example: numeric ID for your private group
 
 @app.route("/razorpay-webhook", methods=["POST"])
 def razorpay_webhook():
