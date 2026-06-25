@@ -51,3 +51,7 @@ def razorpay_webhook():
         print("Ignored event for plan:", plan_id)
 
     return jsonify({"status": "ok"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
