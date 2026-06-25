@@ -1,57 +1,72 @@
-from flask import Flask, request
-import telegram
-import razorpay
-
-app = Flask(__name__)
-
-TELEGRAM_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-GROUP_ID = -123456789  # Telegram group/channel ID
-bot = telegram.Bot(token=TELEGRAM_TOKEN)
-
-razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY", "RAZORPAY_SECRET"))
-
-@app.route("/razorpay-webhook", methods=["POST"])
-def razorpay_webhook():
-    data = request.json
-    event = data.get("event")
-
-    # Example: subscription activated
-    if event == "subscription.activated":
-        customer_id = data["payload"]["subscription"]["entity"]["customer_id"]
-        telegram_id = get_telegram_id(customer_id)  # lookup from DB
-        bot.invite_chat_member(chat_id=GROUP_ID, user_id=telegram_id)
-
-    # Example: subscription cancelled
-    elif event == "subscription.cancelled":
-        customer_id = data["payload"]["subscription"]["entity"]["customer_id"]
-        telegram_id = get_telegram_id(customer_id)
-        bot.kick_chat_member(chat_id=GROUP_ID, user_id=telegram_id)
-
-    return "ok", 200
 from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-# Replace this with the exact Plan ID you copied from Razorpay
-TARGET_PLAN_ID = "plan_T2znqUUcBkZn5U"
+# 🔑 Replace with your actual Razorpay monthly plan ID
+TARGET_PLAN_ID = "plan_I2znqUcBkZn5U"
+
+# 🔑 Replace with your actual Telegram bot token and group/channel ID
+TELEGRAM_BOT_TOKEN = "8944690649:AAEd_hrD8uS3hvmwCKK_tPVrQ767j7r7xiU"
+GROUP_ID = -2247522257   # Example: numeric ID for your private group
 
 @app.route("/razorpay-webhook", methods=["POST"])
 def razorpay_webhook():
     data = request.get_json()
+    event = data.get("event")
 
     subscription = data.get("subscription", {})
     plan_id = subscription.get("plan_id")
 
     if plan_id == TARGET_PLAN_ID:
-        # ✅ This is the monthly subscription plan we care about
-        print("Valid subscription event for monthly plan:", plan_id)
-        # TODO: Add Telegram bot logic here (e.g., add user to channel)
+        # ✅ Handle subscription events for your monthly plan
+        if event == "subscription.activated":
+            # Example: add user to Telegram group
+            customer_id = subscription.get("customer_id")
+            telegram_id = get_telegram_id(customer_id)
+            add_user_to_group(telegram_id)
+
+        elif event == "subscription.cancelled":
+            # Example: remove user from Telegram group
+            customer_id = subscription.get("customer_id")
+            telegram_id = get_telegram_id(customer_id)
+            remove_user_from_group(telegram_id)
+
+        print("Handled event:", event, "for plan:", plan_id)
     else:
-        # ❌ Ignore other plans or payment links
         print("Ignored event for plan:", plan_id)
 
     return jsonify({"status": "ok"})
 
+
+# --- Helper functions ---
+
+def get_telegram_id(customer_id):
+    """
+    Lookup Telegram ID from your DB using Razorpay customer_id.
+    For now, just return a placeholder until DB integration is ready.
+    """
+    return 123456789  # Replace with actual lookup
+
+
+def add_user_to_group(telegram_id):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/inviteChatMember"
+    payload = {
+        "chat_id": GROUP_ID,
+        "user_id": telegram_id
+    }
+    requests.post(url, json=payload)
+
+
+def remove_user_from_group(telegram_id):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/kickChatMember"
+    payload = {
+        "chat_id": GROUP_ID,
+        "user_id": telegram_id
+    }
+    requests.post(url, json=payload)
+
+
+# --- Entry point ---
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
